@@ -25,7 +25,7 @@ contract Lottery is Ownable {
 
     bool private _currentRoundIsActive;
     uint256 private _currentRoundId;
-    mapping(uint256 => Round) private _roundInfo;
+    mapping(uint256 => Round) public _roundInfo;
     uint256 private _randNonce;
 
     event RoundActivated(
@@ -258,29 +258,33 @@ contract Lottery is Ownable {
         _buyTicket(sender, numberOfTickets);
     }
 
-    function getTopWallet() public roundIsActive returns (address topWallet, uint256[] memory tickets) {
-        return (_roundInfo[_currentRoundId].topWallet, _roundInfo[_currentRoundId].userTickets[topWallet]);
+    function getTopWallet() public view roundIsActive returns (address topWallet, uint256[] memory tickets) {
+        return (
+            _roundInfo[_currentRoundId].topWallet,
+            _roundInfo[_currentRoundId].userTickets[_roundInfo[_currentRoundId].topWallet]
+        );
     }
 
     // Can anyone see the ticket list of others?
-    function getWalletTickets(address wallet) public roundIsActive returns (uint256[] memory tickets) {
+    function getWalletTickets(address wallet) public view roundIsActive returns (uint256[] memory tickets) {
         return _roundInfo[_currentRoundId].userTickets[wallet];
     }
 
-    function getWinner(address wallet) public roundIsActive returns (address winner, uint256 winningTicket) {
+    function getWinner() public view roundIsActive returns (address winner, uint256 winningTicket) {
         return (_roundInfo[_currentRoundId].winner, _roundInfo[_currentRoundId].winningTicket);
     }
 
-    function getStartDuration() public roundIsActive returns (uint256 startTime, uint256 duration) {
+    function getStartDuration() public view roundIsActive returns (uint256 startTime, uint256 duration) {
         return (_roundInfo[_currentRoundId].startTime, _roundInfo[_currentRoundId].duration);
     }
 
-    function getPaymentInfo() public roundIsActive returns (address token, uint256 unitPrice) {
+    function getPaymentInfo() public view roundIsActive returns (address token, uint256 unitPrice) {
         return (_roundInfo[_currentRoundId].token, _roundInfo[_currentRoundId].unitPrice);
     }
 
     function getTicketSupplyInfo()
         public
+        view
         roundIsActive
         returns (
             uint256 maximumSupply,
@@ -293,5 +297,13 @@ contract Lottery is Ownable {
             _roundInfo[_currentRoundId].nextAvailableTicketIndex,
             _roundInfo[_currentRoundId].maximumTicketAllowedPerUser
         );
+    }
+
+    function forciblyDeactivateRound() public onlyOwner {
+        _currentRoundIsActive = false;
+    }
+
+    function getRoundInfo() public view returns (uint256, bool) {
+        return (_currentRoundId, _currentRoundIsActive);
     }
 }
