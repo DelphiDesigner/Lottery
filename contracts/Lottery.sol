@@ -25,7 +25,7 @@ contract Lottery is Ownable {
 
     bool private _currentRoundIsActive;
     uint256 private _currentRoundId;
-    mapping(uint256 => Round) public _roundInfo;
+    mapping(uint256 => Round) private _roundInfo;
     uint256 private _randNonce;
 
     event RoundActivated(
